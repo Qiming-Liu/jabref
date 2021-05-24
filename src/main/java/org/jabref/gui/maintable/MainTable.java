@@ -177,7 +177,7 @@ public class MainTable extends TableView<BibEntryTableViewModel> {
         database.getDatabase().registerListener(this);
 
         // Create Right Click ContextMenu
-        new MainTableHeaderRightClickMenu().show(this, libraryTab.frame(), dialogService);
+        new MainTableHeaderRightClickMenu().show(this, libraryTab.frame(), dialogService, preferencesService);
     }
 
     /**
