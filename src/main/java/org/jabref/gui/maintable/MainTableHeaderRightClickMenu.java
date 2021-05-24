@@ -12,14 +12,21 @@ import javafx.scene.input.MouseButton;
 import javafx.scene.layout.StackPane;
 
 import org.jabref.gui.DialogService;
-import org.jabref.gui.LibraryTab;
+import org.jabref.gui.JabRefFrame;
 import org.jabref.gui.maintable.columns.MainTableColumn;
 import org.jabref.gui.preferences.PreferencesDialogView;
+import org.jabref.gui.preferences.table.TableTab;
+import org.jabref.gui.preferences.table.TableTabViewModel;
 import org.jabref.logic.l10n.Localization;
 
 public class MainTableHeaderRightClickMenu extends ContextMenu {
 
-    public void show(MainTable mainTable, LibraryTab libraryTab, DialogService dialogService) {
+    public void show(MainTable mainTable, JabRefFrame jabRefFrame, DialogService dialogService) {
+
+        PreferencesDialogView preferencesDialogView = new PreferencesDialogView(jabRefFrame);
+        preferencesDialogView.getPreferenceTabList().getSelectionModel().select(3);
+        TableTabViewModel tableTabViewModel = ((TableTab) preferencesDialogView.getViewModel().getPreferenceTabs().get(3)).getViewModel();
+
         mainTable.setOnContextMenuRequested(clickEvent -> {
 
             // Click on the tableColumns
@@ -27,17 +34,15 @@ public class MainTableHeaderRightClickMenu extends ContextMenu {
 
                 // Create radioMenuItemList from tableColumnList
                 List<RadioMenuItem> radioMenuItems = new ArrayList<>();
-                mainTable.getColumns().forEach(tableColumn -> radioMenuItems.add(createRadioMenuItem(tableColumn)));
+
+                mainTable.getColumns().forEach(tableColumn -> radioMenuItems.add(createRadioMenuItem(tableColumn, tableTabViewModel)));
 
                 SeparatorMenuItem line = new SeparatorMenuItem();
 
                 // Show preferences Button
                 MenuItem columnsPreferences = new MenuItem(Localization.lang("Show preferences"));
                 columnsPreferences.setOnAction(event -> {
-
                     // Show Entry table
-                    PreferencesDialogView preferencesDialogView = new PreferencesDialogView(libraryTab.frame());
-                    preferencesDialogView.getPreferenceTabList().getSelectionModel().select(3);
                     dialogService.showCustomDialog(preferencesDialogView);
                 });
 
@@ -60,18 +65,22 @@ public class MainTableHeaderRightClickMenu extends ContextMenu {
         });
     }
 
-    private RadioMenuItem createRadioMenuItem(TableColumn<BibEntryTableViewModel, ?> tableColumn) {
+    private RadioMenuItem createRadioMenuItem(TableColumn<BibEntryTableViewModel, ?> tableColumn, TableTabViewModel tableTabViewModel) {
 
         // Get DisplayName
         RadioMenuItem radioMenuItem = new RadioMenuItem(((MainTableColumn<?>) tableColumn).getDisplayName());
 
         // Get VisibleStatus
-        radioMenuItem.setSelected(((MainTableColumn) tableColumn).getModel().getVisibleStatus());
+        radioMenuItem.setSelected(true); // need to compare with default
         radioMenuItem.setOnAction(event -> {
-
-            // Store VisibleStatus and setVisible
-            ((MainTableColumn) tableColumn).getModel().setVisibleStatus(!((MainTableColumn) tableColumn).getModel().getVisibleStatus());
-            tableColumn.setVisible(((MainTableColumn) tableColumn).getModel().getVisibleStatus());
+            if(radioMenuItem.isSelected()){
+                tableTabViewModel.removeColumn(((MainTableColumn<?>) tableColumn).getModel());
+                tableTabViewModel.storeSettings();
+            } else {
+                //Todo setup new MainTableColumn here
+//                tableTabViewModel.addColumnProperty() = new MainTableColumnModel(MainTableColumnModel.Type.GROUPS);
+                tableTabViewModel.storeSettings();
+            }
         });
 
         return radioMenuItem;

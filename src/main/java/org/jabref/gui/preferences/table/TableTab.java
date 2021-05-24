@@ -151,4 +151,8 @@ public class TableTab extends AbstractPreferenceTabView<TableTabViewModel> imple
     public void addColumn() {
         viewModel.insertColumnInList();
     }
+
+    public TableTabViewModel getViewModel(){
+        return viewModel;
+    }
 }
